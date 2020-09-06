@@ -97,15 +97,65 @@ def to_jp_num(number):
     #Complex conversions
     jp_str = ""
     
+    #Handle KEIs
+    tmp = int_number // JpVal.KEI
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.KEI
+    elif tmp == 1:
+        jp_str = jp_str + JpRep.KEI
+    int_number = int_number - (tmp * JpVal.KEI)
+    
+    #Handle CHOUs
+    tmp = int_number // JpVal.CHOU
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.CHOU
+    elif tmp == 1:
+        jp_str = jp_str + JpRep.CHOU
+    int_number = int_number - (tmp * JpVal.CHOU)
+    
+    #Handle OKUs
+    tmp = int_number // JpVal.OKU
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.OKU
+    elif tmp == 1:
+        jp_str = jp_str + JpRep.OKU
+    int_number = int_number - (tmp * JpVal.OKU)
+    
+    #Handle 10000s
+    tmp = int_number // JpVal.MAN
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.MAN
+    elif tmp == 1:
+        jp_str = jp_str + JpRep.MAN
+    int_number = int_number - (tmp * JpVal.MAN)
+    
+    #Handle 1000s
+    tmp = int_number // JpVal.SEN
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.SEN
+    elif tmp == 1:
+        jp_str = jp_str + JpRep.SEN
+    int_number = int_number - (tmp * JpVal.SEN)
+    
+    #Handle 100s
+    tmp = int_number // JpVal.HYAKU
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.HYAKU
+    elif tmp == 1:
+        jp_str = jp_str + JpRep.HYAKU
+    int_number = int_number - (tmp * JpVal.HYAKU)
+    
     #Handle 10s
-    tmp = int_number // int(JpVal.JUU)
+    tmp = int_number // JpVal.JUU
     if tmp > 1:
         jp_str = jp_str + to_jp_num(tmp) + JpRep.JUU
-    else:
+    elif tmp == 1:
         jp_str = jp_str + JpRep.JUU
     
     tmp = int_number % 10
     jp_str = jp_str + to_jp_num(tmp)
+    
+    print(jp_str)
     
     return jp_str
 
@@ -131,7 +181,24 @@ def main():
     print("80 == 八十: {0}".format("八十" == to_jp_num(80)))
     print("99 == 九十九: {0}".format("九十九" == to_jp_num(99)))
     
-    #print("100 == 百: {0}".format("百" == to_jp_num(100)))
+    print("100 == 百: {0}".format("百" == to_jp_num(100)))
+    print("900 == 九百: {0}".format("九百" == to_jp_num(900)))
+    print("1000 == 千: {0}".format("千" == to_jp_num(1000)))
+    print("2222 == 二千二百二十二: {0}".format("二千二百二十二" == to_jp_num(2222)))
+    print("22222 == 二万二千二百二十二: {0}".format("二万二千二百二十二" == to_jp_num(22222)))
+    print("222222222 == 二億二千二百二十二万二千二百二十二: {0}"
+          .format("二億二千二百二十二万二千二百二十二" == to_jp_num(222222222)))
+    print("2222222222222 == 二兆二千二百二十二億二千二百二十二万二千二百二十二: {0}"
+          .format("二兆二千二百二十二億二千二百二十二万二千二百二十二" == to_jp_num(2222222222222)))
+    print("22222222222222222 == 二京二千二百二十二兆二千二百二十二億二千二百二十二万二千二百二十二: {0}"
+          .format("二京二千二百二十二兆二千二百二十二億二千二百二十二万二千二百二十二" == to_jp_num(22222222222222222)))
+    
+    #Tests designed to break the function
+    try:
+        to_jp_num(1.23)
+        print("Passing a float fails: False")
+    except:
+        print("Passing a float fails: True")
     
     #outlier tests
     #print("0 == ◯: {0}".format("◯" == to_jp_num(0)))
