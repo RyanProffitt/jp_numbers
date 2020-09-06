@@ -95,7 +95,17 @@ def to_jp_num(number):
         return JpRep.JUU
     
     #Complex conversions
+    jp_str = ""
     
+    #Handle 10s
+    tmp = int_number // int(JpVal.JUU)
+    if tmp > 1:
+        jp_str = jp_str + to_jp_num(tmp) + JpRep.JUU
+    else:
+        jp_str = jp_str + JpRep.JUU
+    
+    tmp = int_number % 10
+    jp_str = jp_str + to_jp_num(tmp)
     
     return jp_str
 
@@ -114,9 +124,19 @@ def main():
     
     #Complex Number Tests
     print("14 == 十四: {0}".format("十四" == to_jp_num(14)))
+    print("19 == 十九: {0}".format("十九" == to_jp_num(19)))
+    print("21 == 二十一: {0}".format("二十一" == to_jp_num(21)))
+    print("27 == 二十七: {0}".format("二十七" == to_jp_num(27)))
+    print("55 == 五十五: {0}".format("五十五" == to_jp_num(55)))
+    print("80 == 八十: {0}".format("八十" == to_jp_num(80)))
+    print("99 == 九十九: {0}".format("九十九" == to_jp_num(99)))
+    
+    #print("100 == 百: {0}".format("百" == to_jp_num(100)))
     
     #outlier tests
-    print("0 == ◯: {0}".format("◯" == to_jp_num(0)))
+    #print("0 == ◯: {0}".format("◯" == to_jp_num(0)))
+    
+    print("Done Testing!")
     
 if __name__ == "__main__":
     main()
