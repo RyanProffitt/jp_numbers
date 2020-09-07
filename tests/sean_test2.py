@@ -1,5 +1,5 @@
 # Convert English numebring system to Japanese numbering system
-# BUG - doesn't accept float / decimal values
+# doesn't accept float / decimal values
 # Make each IF statement as is a function as I repeat code a lot
     # idea, check length of the int and then run some recursive function
 
