@@ -106,21 +106,29 @@ def kanji_to_value(jp_number):
         basic_number = JpVal.KEI
         return(basic_number)
 
-def number_stripper(number, next_digit_last, multi_digit_num_before, multi_digit_val):
-
-    # check if next value corresponds to 0 - 9, if not then reduce the number of zeros by the next digit
+def number_stripper(number, next_digit_last, multi_digit_num_before, multi_digit_val, prev_multi_then_single, single_digit_val):
 
     int_value = int(number)
     int_prev_multi_digit_val = int(multi_digit_val)
     prev_digits = ""
     tmp_value = ""
 
+    # if previous value was a single digit kanji and prior to that was a multi digit
     if multi_digit_num_before == True:
         tmp_value = int(int_prev_multi_digit_val / int_value)
         tmp_value = str(tmp_value)
         prev_digits = tmp_value[2:]
         number = "1"
 
+    # if previous value was a multi digit kanji
+    if prev_multi_then_single == True:
+        tmp_value = int(int_prev_multi_digit_val / int_value)
+        tmp_value = str(tmp_value)
+        prev_digits = tmp_value[1:]
+        number = prev_digits + single_digit_val
+        return(number)
+
+    # if the current digit is a multi kanji and the next digit is the last value
     if next_digit_last == True:
         int_value = int(int_value / 10)
         tmp_number = str(int_value)
@@ -128,6 +136,7 @@ def number_stripper(number, next_digit_last, multi_digit_num_before, multi_digit
         number = prev_digits + tmp_number
         return(number)
 
+    # if none of the above conditions are true
     if multi_digit_num_before == False and next_digit_last == False:
         number = ""
 
@@ -147,10 +156,13 @@ def jap_to_eng(jp_number):
     if length == 1:
         return(kanji_to_value(jp_number))
 
+    # need to rework how complex conversions are executed
+
     # Complex conversions
     elif length > 1:
         jp_str = ""
         multi_digit_val = ""
+        single_digit_val = ""
         first_value = False
         last_value = False
         
@@ -164,6 +176,8 @@ def jap_to_eng(jp_number):
 
             if i == (length - 1):
                 last_value = True
+            
+            prev_multi_then_single = False
 
             tmp = kanji_to_value(jp_number[i])
             tmp = str(tmp)
@@ -181,6 +195,19 @@ def jap_to_eng(jp_number):
                 prev_tmp = str(prev_tmp)
                 multi_digit_val = prev_tmp
 
+            # to track if previous value is single digit and previous to that was multi digit
+            if i > 1 and len(tmp) > 1:
+                    j = kanji_to_value(jp_number[(i - 2)])
+                    j = str(j)
+                    if len(j) > 1:
+                        k = kanji_to_value(jp_number[(i - 1)])
+                        k = str(k)
+                        if len(k) == 1:
+                            # set values for number stripper
+                            prev_multi_then_single = True
+                            single_digit_val = k
+                            multi_digit_val = j
+
             # FIRST DIGIT - we still want the first digit value
             if len(tmp) > 1 and first_value:
                 tmp = tmp[i]
@@ -190,13 +217,13 @@ def jap_to_eng(jp_number):
             elif len(tmp) > 1 and last_value:
                 tmp = tmp[1:]
                 last_value == False
-
+                
             # BETWEEN DIGIT - we need to modify the value to display correctly
             elif len(tmp) > 1:
                 # check if next digit is the the last value
                 if i == (length - 2):
                     next_digit_last = True
-                tmp = number_stripper(tmp, next_digit_last, multi_digit_num_before, multi_digit_val)
+                tmp = number_stripper(tmp, next_digit_last, multi_digit_num_before, multi_digit_val, prev_multi_then_single, single_digit_val)
 
             jp_str = jp_str + tmp
             multi_digit_num_before = False
@@ -236,12 +263,14 @@ def main():
     print("四百二十 == 420: {0}".format(420 == jap_to_eng("四百二十")))
     print("四百二十九 == 429: {0}".format(429 == jap_to_eng("四百二十九")))
     print("四千百二十九 == 4129 {0}".format(4129 == jap_to_eng("四千百二十九")))
-    print("四万百二十九 == 40129 {0}".format(40129 == jap_to_eng("四万百二十九")))
-    print("四億百二十九 == 400000129 {0}".format(400000129 == jap_to_eng("四億百二十九")))
+    print(jap_to_eng("四千百二十九"))
+    # print("四万百二十九 == 40129 {0}".format(40129 == jap_to_eng("四万百二十九")))
+    # print("四億百二十九 == 400000129 {0}".format(400000129 == jap_to_eng("四億百二十九")))
 
-    # currently not working, need to check two digits back if it's a multi digit number and add the required zero's
-    print("四億四百 == 400000400 {0}".format(400000400 == jap_to_eng("四億四百")))
-    print(jap_to_eng("四億四百"))
+    # # currently not working, need to check two digits back if it's a multi digit number and add the required zero's
+    # print("四億四百三 == 400000403 {0}".format(400000403 == jap_to_eng("四億四百三")))
+    # print(jap_to_eng("四億四百三"))
+    # print("Expect: 400000400")
 
 if __name__ == "__main__":
     main()
