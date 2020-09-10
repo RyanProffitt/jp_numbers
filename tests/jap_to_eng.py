@@ -106,139 +106,140 @@ def kanji_to_value(jp_number):
         basic_number = JpVal.KEI
         return(basic_number)
 
-def number_stripper(number, next_digit_last, multi_digit_num_before, multi_digit_val, prev_multi_then_single, single_digit_val):
-
-    int_value = int(number)
-    int_prev_multi_digit_val = int(multi_digit_val)
-    prev_digits = ""
-    tmp_value = ""
-
-    # if previous value was a single digit kanji and prior to that was a multi digit
-    if multi_digit_num_before == True:
-        tmp_value = int(int_prev_multi_digit_val / int_value)
-        tmp_value = str(tmp_value)
-        prev_digits = tmp_value[2:]
-        number = "1"
-
-    # if previous value was a multi digit kanji
-    if prev_multi_then_single == True:
-        tmp_value = int(int_prev_multi_digit_val / int_value)
-        tmp_value = str(tmp_value)
-        prev_digits = tmp_value[1:]
-        number = prev_digits + single_digit_val
-        return(number)
-
-    # if the current digit is a multi kanji and the next digit is the last value
-    if next_digit_last == True:
-        int_value = int(int_value / 10)
-        tmp_number = str(int_value)
-        tmp_number = tmp_number[1:]
-        number = prev_digits + tmp_number
-        return(number)
-
-    # if none of the above conditions are true
-    if multi_digit_num_before == False and next_digit_last == False:
-        number = ""
-
-    number = prev_digits + number
-    return(number)
-
 def jap_to_eng(jp_number):
 
-    # My error checking wasn't working... get to later
-    # prevent anything except kanji characters as accepted in JpRep
+    # Check to confirm string has been input
+    if type(jp_number) is not str:
+        return(print("Please input a Kanji numerical values."))
 
     length = len(jp_number)
-    next_digit_last = False
-    multi_digit = False
 
     # Basic conversions
     if length == 1:
         return(kanji_to_value(jp_number))
 
-    # need to rework how complex conversions are executed
-
     # Complex conversions
-    elif length > 1:
+
+    if length != 1:
+
         jp_str = ""
-        multi_digit_val = ""
-        single_digit_val = ""
-        first_value = False
-        last_value = False
-        
-        for i in range(length):
 
-            # track if using the first or last value
-            if i == 0:
-                first_value = True
-            else:
-                first_value = False
+        multiple_counter = "1"
 
-            if i == (length - 1):
-                last_value = True
+        # For loop is reversed for simplicity
+        for i in reversed(range(length)):
+
+            tmp_str = kanji_to_value(jp_number[i])
+            tmp_str = str(tmp_str)
+
+            # Check to confirm that str can be converted to int - else exit program
+            try:
+                int_tmp_str = int(tmp_str)
+            except:
+                return(print("You have input non-numeric Kanji."))
+
+            # Check position of the digit
+
+            first_digit = False
+            last_digit = False
+
+            if (i + 1) == len(jp_number):
+                last_digit = True
             
-            prev_multi_then_single = False
+            if i == 0:
+                first_digit = True
 
-            tmp = kanji_to_value(jp_number[i])
-            tmp = str(tmp)
+            # Test digit and next digit if 0 - 9 Kanji or 10+ Kanji
+            
+            current_multi_digit = False
+            current_single_digit = False
+            next_multi_digit = False
+            next_single_digit = False
+            prev_multi_digit = False
+            prev_single_digit = False
 
-            # check if previous digit was a multi digit kanji
-            # multi_digit_kanji = ["十", "百", "千", "万", "億", "兆", "京"]
-            if multi_digit == True:
-                multi_digit_num_before = True
-                multi_digit = False
+            
+            # Current [i] digit check
+            if len(tmp_str) > 1:
+                current_multi_digit = True
+            else:
+                current_single_digit = True
 
-            # to track multi digit kanji used for number stripper function
-            if len(tmp) > 1:
-                multi_digit = True
-                prev_tmp = kanji_to_value(jp_number[(i - 1)])
-                prev_tmp = str(prev_tmp)
-                multi_digit_val = prev_tmp
+            # Next value [i - 1] digit check
+            if i != 0:
+                next_tmp_str = kanji_to_value(jp_number[(i - 1)])
+                next_tmp_str = str(next_tmp_str)
+                if len(next_tmp_str) > 1:
+                    next_multi_digit = True
+                else:
+                    next_single_digit = True
+            
+            # Previous value [i + 1] digit check
+            if last_digit == False:
+                prev_tmp_str = kanji_to_value(jp_number[(i + 1)])
+                prev_tmp_str = str(prev_tmp_str)
+                if len(prev_tmp_str) > 1:
+                    prev_multi_digit = True
+                else:
+                    prev_single_digit = True
 
-            # to track if previous value is single digit and previous to that was multi digit
-            if i > 1 and len(tmp) > 1:
-                    j = kanji_to_value(jp_number[(i - 2)])
-                    j = str(j)
-                    if len(j) > 1:
-                        k = kanji_to_value(jp_number[(i - 1)])
-                        k = str(k)
-                        if len(k) == 1:
-                            # set values for number stripper
-                            prev_multi_then_single = True
-                            single_digit_val = k
-                            multi_digit_val = j
+            # Check the current multiple counter - to track 0's required
+            tmp_length = len(tmp_str)
+            zero_counter = ""
 
-            # FIRST DIGIT - we still want the first digit value
-            if len(tmp) > 1 and first_value:
-                tmp = tmp[i]
-                first_value == False
+            if tmp_length > len(multiple_counter):
+                int_ = int(tmp_str) // (int(multiple_counter) * 10)
+                zero_counter = str(int_)
+                zero_counter = zero_counter[1:]
+                multiple_counter = tmp_str
 
-            # LAST DIGIT - don't want to modify
-            elif len(tmp) > 1 and last_value:
-                tmp = tmp[1:]
-                last_value == False
-                
-            # BETWEEN DIGIT - we need to modify the value to display correctly
-            elif len(tmp) > 1:
-                # check if next digit is the the last value
-                if i == (length - 2):
-                    next_digit_last = True
-                tmp = number_stripper(tmp, next_digit_last, multi_digit_num_before, multi_digit_val, prev_multi_then_single, single_digit_val)
+            # Start transforming the Japanese to English
+            
+            if current_multi_digit and next_multi_digit:
+                tmp = "1"
 
-            jp_str = jp_str + tmp
-            multi_digit_num_before = False
+            if current_multi_digit and next_single_digit:
+                tmp = ""
 
-        int_val = int(jp_str)
-        return(int_val)
+            if current_multi_digit and next_single_digit and prev_multi_digit:
+                a = kanji_to_value(jp_number[i])
+                b = kanji_to_value(jp_number[(i + 1)])
+                c = int(a / b)
+                c = str(c)
+                if len(c) > 1:
+                    tmp = c[2:]
+
+            if current_multi_digit and next_single_digit and prev_single_digit:
+                tmp = zero_counter
+
+            if current_single_digit:
+                tmp = str(tmp_str)
+
+            if first_digit and current_multi_digit:
+                tmp = "1"
+
+            if last_digit and current_multi_digit:
+                if next_single_digit:
+                    tmp = str(tmp_str)
+                    tmp = tmp[1:]
+                elif next_multi_digit:
+                    tmp = str(tmp_str)
+
+            # Add to the string
+            jp_str = tmp + jp_str
+
+    # Return the string as an integer value
+    jp_str = int(jp_str)
+    return(jp_str)
 
 def main():
     
-    # input testing
+    # Input testing
     # kanji_number = input("Please input a japanese number: ")
     # kanji_number = jap_to_eng(kanji_number)
     # print(kanji_number)
 
-    # basic number tests
+    # Basic number tests
     print("◯  == 0: {0}".format(0 == jap_to_eng("◯")))
     print("一 == 1: {0}".format(1 == jap_to_eng("一")))
     print("二 == 2: {0}".format(2 == jap_to_eng("二")))
@@ -257,20 +258,24 @@ def main():
     print("兆 == 1000000000000: {0}".format(1000000000000 == jap_to_eng("兆")))
     print("京 == 100000000000000000: {0}".format(100000000000000000 == jap_to_eng("京")))
 
-    # complex number tests
+    # Complex number tests
     print("三十 == 30: {0}".format(30 == jap_to_eng("三十")))
     print("三百三 == 303: {0}".format(303 == jap_to_eng("三百三")))
     print("四百二十 == 420: {0}".format(420 == jap_to_eng("四百二十")))
     print("四百二十九 == 429: {0}".format(429 == jap_to_eng("四百二十九")))
     print("四千百二十九 == 4129 {0}".format(4129 == jap_to_eng("四千百二十九")))
-    print(jap_to_eng("四千百二十九"))
-    # print("四万百二十九 == 40129 {0}".format(40129 == jap_to_eng("四万百二十九")))
-    # print("四億百二十九 == 400000129 {0}".format(400000129 == jap_to_eng("四億百二十九")))
+    print("四万百二十九 == 40129 {0}".format(40129 == jap_to_eng("四万百二十九")))
+    print("四億百二十九 == 400000129 {0}".format(400000129 == jap_to_eng("四億百二十九")))
+    print("四億四百三 == 400000403 {0}".format(400000403 == jap_to_eng("四億四百三")))
+    print("四億二万九千三百三十一 == 400029331 {0}".format(400029331 == jap_to_eng("四億二万九千三百三十一")))
 
-    # # currently not working, need to check two digits back if it's a multi digit number and add the required zero's
-    # print("四億四百三 == 400000403 {0}".format(400000403 == jap_to_eng("四億四百三")))
-    # print(jap_to_eng("四億四百三"))
-    # print("Expect: 400000400")
+    # Intentional errors
+    print("Hello == Error")
+    jap_to_eng("hello")
+    print("四億e四3百三 == Error")
+    jap_to_eng("四億e四3百三")
+    print("2345 == Error")
+    jap_to_eng("2345")
 
 if __name__ == "__main__":
     main()
